@@ -4,7 +4,7 @@ import os
 import urllib.request
 
 # FastAPIサーバーのエンドポイントURL
-FASTAPI_URL = os.environ.get("FASTAPI_URL", "https://d847-34-16-249-129.ngrok-free.app/generate")
+FASTAPI_URL = os.environ.get("FASTAPI_URL", "https://27fb-34-16-249-129.ngrok-free.app/generate")
 
 def lambda_handler(event, context):
     try:
