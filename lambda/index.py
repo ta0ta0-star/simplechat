@@ -4,13 +4,13 @@ import os
 import urllib.request
 
 # FastAPIサーバーのエンドポイントURL
-FASTAPI_URL = os.environ.get("FASTAPI_URL", "https://d847-34-16-249-129.ngrok-free.app/chat")
+FASTAPI_URL = os.environ.get("FASTAPI_URL", "https://d847-34-16-249-129.ngrok-free.app/generate")
 
 def lambda_handler(event, context):
     try:
         print("Received event:", json.dumps(event))
 
-        # Cognitoで認証されたユーザー情報（これは残してもOK）
+        # Cognitoで認証されたユーザー情報
         user_info = None
         if 'requestContext' in event and 'authorizer' in event['requestContext']:
             user_info = event['requestContext']['authorizer']['claims']
@@ -19,14 +19,13 @@ def lambda_handler(event, context):
         # リクエストボディを解析
         body = json.loads(event['body'])
         message = body['message']
-        conversation_history = body.get('conversationHistory', [])
+        # conversation_history = body.get('conversationHistory', [])
 
         print("Processing message:", message)
 
         # FastAPIに送るデータを作成
         payload = {
-            "message": message,
-            "conversationHistory": conversation_history
+            "prompt": message
         }
 
         print("Calling FastAPI server with payload:", json.dumps(payload))
@@ -62,7 +61,7 @@ def lambda_handler(event, context):
             "body": json.dumps({
                 "success": True,
                 "response": assistant_response,
-                "conversationHistory": updated_conversation_history
+                "conversationHistory": []
             })
         }
 
