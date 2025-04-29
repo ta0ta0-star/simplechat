@@ -58,9 +58,9 @@ def lambda_handler(event, context):
 
         prompt = ""
         for msg in messages:
-            role_prefix = "ユーザー: " if msg["role] == "user" else "アシスタント: "
+            role_prefix = "ユーザー: " if msg["role"] == "user" else "アシスタント: "
             prompt += f"{role_prefix}{msg['content']}\n"
-        print("Constructed prompt:" prompt)
+        print("Constructed prompt:", prompt)
         
         # Nova Liteモデル用のリクエストペイロードを構築
         # 会話履歴を含める
@@ -90,8 +90,11 @@ def lambda_handler(event, context):
 
         # FastAPI用のリクエストペイロード
         request_payload = {
-            "message": message,
-            "conversationHistory": conversation_history
+            "prompt": prompt,
+            "max_new_tokens": 512,
+            "do_sample": True,
+            "temperature": 0.7,
+            "top_p": 0.9
         }
         
         print("Calling Bedrock invoke_model API with payload:", json.dumps(request_payload))
@@ -125,14 +128,17 @@ def lambda_handler(event, context):
         #     raise Exception("No response content from the model")
 
         # FastAPIからの応答を検証
-        if not fastapi_response.get('success'):
-            raise Exception(fastapi_response.get('error', 'Unknown error from FastAPI server'))
+        # if not fastapi_response.get('success'):
+        #     raise Exception(fastapi_response.get('error', 'Unknown error from FastAPI server'))
         
-        # アシスタントの応答を取得
-        assistant_response = fastapi_response['response']
+        # FastAPIの返答から生成結果を抽出
+        assistant_response = fastapi_response['generated_text']
         
-        # アシスタントの応答を会話履歴に追加
-        updated_conversation_history = fastapi_response['conversationHistory']
+        # 会話履歴にアシスタントの応答を追加
+        messages.append({
+            "role": "assistant",
+            "content": assistant_response
+        })
         
         # 成功レスポンスの返却
         return {
