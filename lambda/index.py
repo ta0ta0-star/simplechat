@@ -132,6 +132,9 @@ def lambda_handler(event, context):
         #     raise Exception(fastapi_response.get('error', 'Unknown error from FastAPI server'))
         
         # FastAPIの返答から生成結果を抽出
+        if "generated_text" not in fastapi_response:
+            raise Exception("No generated_text in FastAPI response")
+        
         assistant_response = fastapi_response['generated_text']
         
         # 会話履歴にアシスタントの応答を追加
