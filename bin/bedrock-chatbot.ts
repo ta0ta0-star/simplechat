@@ -8,7 +8,7 @@ new BedrockChatbotStack(app, 'BedrockChatbotStack', {
   // モデルIDをオプションで指定可能
   //modelId: 'us.amazon.nova-lite-v1:0',
   //modelId: 'us.amazon.nova-micro-v1:0',
-  modelId: 'https://d847-34-16-249-129.ngrok-free.app/'
+  modelId: 'https://d847-34-16-249-129.ngrok-free.app/',
   
   // 環境変数から取得したリージョンを使用、またはデフォルトとしてus-east-1を使用
   env: { 
