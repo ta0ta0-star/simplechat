@@ -6,7 +6,7 @@ import re  # 正規表現モジュールをインポート
 import urllib.request
 
 # FastAPIサーバーのエンドポイントURL
-FASTAPI_URL = os.environ.get("FASTAPI_URL", "https://example.com/generate")
+FASTAPI_URL = os.environ.get("FASTAPI_URL", "https://87b4-35-227-95-227.ngrok-free.app/generate")
 
 # Lambda コンテキストからリージョンを抽出する関数
 def extract_region_from_arn(arn):
