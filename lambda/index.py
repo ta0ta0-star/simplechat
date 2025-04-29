@@ -56,6 +56,8 @@ def lambda_handler(event, context):
             "content": message
         })
 
+        updated_conversation_history = messages
+
         prompt = ""
         for msg in messages:
             role_prefix = "ユーザー: " if msg["role"] == "user" else "アシスタント: "
