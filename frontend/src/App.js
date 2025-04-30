@@ -1,4 +1,3 @@
-// frontend/src/App.js
 import React, { useState, useEffect, useRef } from 'react';
 import { Amplify, Auth } from 'aws-amplify';
 import { Authenticator } from '@aws-amplify/ui-react';
@@ -6,9 +5,7 @@ import '@aws-amplify/ui-react/styles.css';
 import axios from 'axios';
 import './App.css';
 
-// 設定を読み込む関数
 const loadConfig = () => {
-  // ウィンドウオブジェクトから設定を取得
   if (window.REACT_APP_CONFIG) {
     return {
       apiEndpoint: window.REACT_APP_CONFIG.apiEndpoint,
@@ -17,8 +14,7 @@ const loadConfig = () => {
       region: window.REACT_APP_CONFIG.region,
     };
   }
-  
-  // 環境変数から設定を取得（ローカル開発用）
+
   return {
     apiEndpoint: process.env.REACT_APP_API_ENDPOINT || 'YOUR_API_ENDPOINT',
     userPoolId: process.env.REACT_APP_USER_POOL_ID || 'YOUR_USER_POOL_ID',
@@ -27,10 +23,8 @@ const loadConfig = () => {
   };
 };
 
-// 設定を取得
 const config = loadConfig();
 
-// Amplify設定
 Amplify.configure({
   Auth: {
     region: config.region,
@@ -39,7 +33,6 @@ Amplify.configure({
   },
 });
 
-// ChatInterfaceコンポーネントの定義
 function ChatInterface({ signOut, user }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -47,7 +40,6 @@ function ChatInterface({ signOut, user }) {
   const [error, setError] = useState(null);
   const messagesEndRef = useRef(null);
 
-  // メッセージが追加されたら自動スクロール
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -56,25 +48,26 @@ function ChatInterface({ signOut, user }) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // チャットメッセージ送信
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
 
     const userMessage = input;
+
+    // ★修正済み：先に新しい履歴を作成
+    const newMessages = [...messages, { role: 'user', content: userMessage }];
+    setMessages(newMessages); // UI用に即反映
     setInput('');
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setLoading(true);
     setError(null);
 
     try {
-      // 認証トークンを取得
       const session = await Auth.currentSession();
       const idToken = session.getIdToken().getJwtToken();
 
       const response = await axios.post(config.apiEndpoint, {
         message: userMessage,
-        conversationHistory: messages
+        conversationHistory: newMessages  // ★修正済み：最新履歴を送信
       }, {
         headers: {
           'Authorization': idToken,
@@ -93,9 +86,42 @@ function ChatInterface({ signOut, user }) {
     } finally {
       setLoading(false);
     }
+
+    // --- 元の実装（古い履歴を送ってしまうバグあり） ---
+    /*
+    setInput('');
+    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setLoading(true);
+    setError(null);
+
+    try {
+      const session = await Auth.currentSession();
+      const idToken = session.getIdToken().getJwtToken();
+
+      const response = await axios.post(config.apiEndpoint, {
+        message: userMessage,
+        conversationHistory: messages  // ← まだ新しいメッセージが含まれていない
+      }, {
+        headers: {
+          'Authorization': idToken,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.data.success) {
+        setMessages(prev => [...prev, { role: 'assistant', content: response.data.response }]);
+      } else {
+        setError('応答の取得に失敗しました');
+      }
+    } catch (err) {
+      console.error("API Error:", err);
+      setError(`エラーが発生しました: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+    */
   };
 
-  // 会話をクリア
   const clearConversation = () => {
     setMessages([]);
   };
@@ -113,7 +139,7 @@ function ChatInterface({ signOut, user }) {
           </button>
         </div>
       </header>
-      
+
       <main className="chat-container">
         <div className="messages-container">
           {messages.length === 0 ? (
@@ -132,7 +158,7 @@ function ChatInterface({ signOut, user }) {
               </div>
             ))
           )}
-          
+
           {loading && (
             <div className="message assistant loading">
               <div className="typing-indicator">
@@ -142,16 +168,16 @@ function ChatInterface({ signOut, user }) {
               </div>
             </div>
           )}
-          
+
           {error && (
             <div className="error-message">
               {error}
             </div>
           )}
-          
+
           <div ref={messagesEndRef} />
         </div>
-        
+
         <form onSubmit={handleSubmit} className="input-form">
           <textarea
             value={input}
@@ -170,7 +196,7 @@ function ChatInterface({ signOut, user }) {
           </button>
         </form>
       </main>
-      
+
       <footer>
         <p>Powered by Amazon Bedrock</p>
       </footer>
